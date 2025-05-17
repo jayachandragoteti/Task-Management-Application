@@ -22,10 +22,12 @@ public class TaskHealthAndHelpController {
      */
     @GetMapping("/")
     public List<String> listAllEndpoints() {
-        return handlerMapping.getHandlerMethods()
-                .keySet()
-                .stream()
-                .map(info -> info.getMethodsCondition() + " " + info.getPatternsCondition())
+        return handlerMapping.getHandlerMethods().entrySet().stream()
+                .map(entry -> {
+                    var methods = entry.getKey().getMethodsCondition().getMethods();
+                    var patterns = entry.getKey().getPatternValues(); // ✅ Use getPatternValues()
+                    return methods + " " + patterns;
+                })
                 .sorted()
                 .collect(Collectors.toList());
     }

@@ -21,7 +21,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    final JwtService jwtService;
+    private final JwtService jwtService;
 
     @Autowired
     private ApplicationContext context;
@@ -34,11 +34,11 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Autharization");
+        String authHeader = request.getHeader("Authorization");
         String username = null;
         String token = null;
 
-        if (authHeader != null && authHeader.contains("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
             username = jwtService.getUsername(token);
         }
@@ -46,14 +46,15 @@ public class JwtFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             CustomUserDetailsService userDetailsService = context.getBean(CustomUserDetailsService.class);
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            
             if (jwtService.validateToken(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
-            
         }
+
         filterChain.doFilter(request, response);
     }
-
 }
