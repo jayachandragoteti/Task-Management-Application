@@ -1,37 +1,48 @@
 package io.github.jayachandragoteti.taskmanagement.controller;
 
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 public class TaskHealthAndHelpController {
-    
-    public TaskHealthAndHelpController(){
 
+    private final RequestMappingHandlerMapping handlerMapping;
+
+    @Autowired
+    public TaskHealthAndHelpController(RequestMappingHandlerMapping handlerMapping) {
+        this.handlerMapping = handlerMapping;
     }
 
+    /**
+     * Root route - List all endpoints
+     */
     @GetMapping("/")
-    public String TaskRoot() {
-        return "Workng";
+    public List<String> listAllEndpoints() {
+        return handlerMapping.getHandlerMethods()
+                .keySet()
+                .stream()
+                .map(info -> info.getMethodsCondition() + " " + info.getPatternsCondition())
+                .sorted()
+                .collect(Collectors.toList());
     }
 
-    @RestController
-public class MyController {
-
+    /**
+     * Health check endpoint
+     */
     @GetMapping("/health")
     public String checkHealth(@RequestParam(required = false, defaultValue = "ok") String param) {
         return "Health Check: " + param.toUpperCase();
     }
 
+    /**
+     * Help endpoint
+     */
     @GetMapping("/help")
     public String getHelp(@RequestParam(required = false, defaultValue = "general") String param) {
         return "Help section for: " + param;
     }
-}
-
-    
-    
-    
 }
